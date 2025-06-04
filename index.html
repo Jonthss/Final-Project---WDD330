@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTRACK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Assuming index.html is in root, and css folder is in root -->
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body class="antialiased">
+
+    <!-- Navbar -->
+    <nav class="navbar sticky top-0 z-40 w-full">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <!-- Assuming images folder is in root -->
+                    <img src="images/logo.png" alt="logo" class="h-12 w-12 mr-3" onerror="this.style.display='none'; console.error('Logo image not found at images/logo.png')">
+                    <a href="index.html" class="text-2xl font-bold text-white">
+                         G<span class="text-indigo-400">TRACK</span>
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="index.html" class="text-gray-300 hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <!-- Path updated for My Collection link -->
+                    <a href="src/collection/collection.html" class="text-gray-300 hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium">My Collection</a>
+                    <a href="#" class="text-gray-300 hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium">About (Soon)</a>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button id="hamburgerButton" class="text-gray-300 hover:text-white focus:outline-none focus:text-white">
+                        <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                            <path id="hamburgerIconOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            <path id="hamburgerIconClose" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobileMenu" class="mobile-menu md:hidden hidden">
+            <a href="index.html" class="block text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-3 text-base font-medium">Home</a>
+            <!-- Path updated for My Collection link in mobile menu -->
+            <a href="src/collection/collection.html" class="block text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-3 text-base font-medium">My Collection</a>
+            <a href="#" class="block text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-3 text-base font-medium">About (Soon)</a>
+        </div>
+    </nav>
+
+    <!-- Hero Banner Section -->
+    <section class="hero-banner relative text-white py-20 sm:py-32 md:py-40 flex items-center justify-center text-center">
+        <div class="absolute inset-0 bg-black opacity-60 hero-overlay"></div>
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <h3 class="text-sm sm:text-base font-semibold uppercase tracking-wider text-indigo-300 mb-2 sm:mb-3">
+                All your games here!
+            </h3>
+            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-4 sm:mb-6 leading-tight hero-title">
+                THE ULTIMATE GAMER <span class="text-indigo-400">LIBRARY</span>
+            </h1>
+            <p class="text-base sm:text-lg md:text-xl text-gray-300 max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto mb-8 sm:mb-10 leading-relaxed">
+                Step into the world of gaming with our game library! Discover exclusive releases, unforgettable classics, and games for all styles. Save your favorites and build your personal collection.
+            </p>
+            <a href="#Explore" class="hero-cta-button inline-flex items-center justify-center px-8 py-3 border border-transparent text-base sm:text-lg font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                Explore Games
+            </a>
+        </div>
+    </section>
+    <!-- End of Hero Banner Section -->
+
+
+    <div id="Explore" class="container mx-auto px-4 sm:px-6 lg:px-8 py-8"> <!-- Main Content -->
+        <header class="mb-10 text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold text-white mb-6 leading-tight">
+                Explore the Gaming Universe
+            </h1>
+            <div class="max-w-xl mx-auto">
+                <div class="relative">
+                    <input type="text" id="searchInput" class="search-input w-full px-5 py-3.5 rounded-full focus:outline-none text-sm placeholder-gray-500" placeholder="Enter a game name...">
+                    <button id="searchButton" class="search-button absolute right-2 top-1/2 transform -translate-y-1/2 text-white px-4 py-2 rounded-full font-semibold text-sm flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mr-1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        </svg>
+                        Search
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <section id="gamesSection">
+            <h2 id="sectionTitle" class="text-3xl font-semibold text-white mb-8">Top Popular Games</h2> <!-- This will be updated by JS -->
+            <div id="loading" class="loading-spinner"></div>
+            <div id="gamesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                <!-- Game cards will be inserted here by JavaScript -->
+            </div>
+        </section>
+
+        <div id="paginationControls" class="mt-12 flex justify-center items-center space-x-2 sm:space-x-3">
+            <!-- Pagination controls will be inserted here by JavaScript -->
+        </div>
+    </div> <!-- End of Main Content -->
+
+    <!-- Modal for game details -->
+    <div id="gameModal" class="fixed inset-0 z-50 modal items-center justify-center hidden">
+        <div class="modal-content max-w-3xl w-full mx-4 p-6 sm:p-8 rounded-xl shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-start mb-6">
+                <h2 id="modalTitle" class="text-3xl font-bold text-white"></h2> <!-- Updated by JS -->
+                <button id="closeModalButton" class="text-gray-400 hover:text-indigo-400 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="md:flex md:space-x-6">
+                <div class="md:w-1/3 mb-6 md:mb-0">
+                    <img id="modalImage" src="https://placehold.co/600x400/1f1f1f/e0e0e0?text=Loading..." alt="Game Image" class="w-full h-auto object-cover rounded-lg shadow-md"> <!-- Alt text updated -->
+                </div>
+                <div class="md:w-2/3">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-indigo-400 mb-1">Release Date:</h3>
+                        <p id="modalReleaseDate" class="text-gray-300"></p>
+                    </div>
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-indigo-400 mb-1">Metacritic Score:</h3>
+                        <p id="modalMetacritic" class="text-gray-300"></p>
+                    </div>
+                     <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-indigo-400 mb-2">Platforms:</h3>
+                        <div id="modalPlatforms" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-indigo-400 mb-2">Genres:</h3>
+                        <div id="modalGenres" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <h3 class="text-xl font-semibold text-indigo-400 mb-2">About the Game</h3>
+                <p id="modalDescription" class="text-gray-400 text-sm leading-relaxed max-h-40 overflow-y-auto pr-2"></p>
+            </div>
+
+            <a id="modalRawgLink" href="#" target="_blank" class="inline-block mt-8 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors text-sm">
+                View more
+            </a>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg transition-opacity duration-300 opacity-0 z-[100]">
+        <span id="toastMessage"></span>
+    </div>
+
+
+    <!-- Path for main.js assumes src folder is in root -->
+    <script type="module" src="src/js/main.js"></script>
+
+    <!-- Footer Section -->
+    <footer class="footer-bg text-white py-8 mt-auto">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="mb-4">
+                <a href="index.html" class="text-2xl font-bold">
+                    G<span class="text-indigo-400">TRACK</span>
+                </a>
+            </div>
+            <p class="text-gray-400 text-sm mb-2">
+                &copy; <span id="currentYear"></span> GTrack. All rights reserved.
+            </p>
+            <p class="text-gray-500 text-xs">
+                Developed as a demonstration project. Game data provided by RAWG.IO.
+            </p>
+            <div class="mt-4">
+                <a href="#" class="text-gray-400 hover:text-indigo-400 px-2">Terms of Service (Soon)</a>
+                <span class="text-gray-500">|</span>
+                <a href="#" class="text-gray-400 hover:text-indigo-400 px-2">Privacy Policy (Soon)</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Simple script to update the year in the footer
+        if (document.getElementById('currentYear')) {
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+        }
+    </script>
+
+</body>
+</html>
