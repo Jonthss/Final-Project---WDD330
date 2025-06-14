@@ -34,6 +34,14 @@ const toastNotification = document.getElementById('toastNotification');
 const toastMessage = document.getElementById('toastMessage');
 let toastTimeout;
 
+// Streamer Carousel Elements
+const streamersCarousel = document.getElementById('streamersCarousel');
+const prevStreamerBtn = document.getElementById('prevStreamerBtn');
+const nextStreamerBtn = document.getElementById('nextStreamerBtn');
+const streamerLoading = document.getElementById('streamerLoading');
+const streamersError = document.getElementById('streamersError');
+const streamersSectionTitle = document.getElementById('streamersSectionTitle');
+
 
 // --- Toast Notification Functions ---
 /**
@@ -78,6 +86,128 @@ export function clearGamesGrid() {
 export function clearPaginationControls() {
     if (paginationControls) paginationControls.innerHTML = '';
 }
+
+// --- Streamer Carousel UI Functions ---
+export function showStreamerLoading() {
+    if (streamerLoading) streamerLoading.style.display = 'block';
+    if (streamersError) streamersError.classList.add('hidden');
+    if (streamersCarousel) streamersCarousel.classList.add('hidden');
+}
+
+export function hideStreamerLoading() {
+    if (streamerLoading) streamerLoading.style.display = 'none';
+    if (streamersCarousel) streamersCarousel.classList.remove('hidden');
+}
+
+export function displayStreamersError(message) {
+    if (streamersError) {
+        streamersError.textContent = message;
+        streamersError.classList.remove('hidden');
+    }
+    if (streamersSectionTitle) streamersSectionTitle.textContent = "Could not load streamers";
+}
+
+
+/**
+ * Creates the HTML for a single streamer card.
+ * @param {Object} streamer - The streamer object from Twitch API.
+ * @returns {string} HTML string for the streamer card.
+ */
+function createStreamerCardHTML(streamer) {
+    const thumbnailUrl = streamer.thumbnail_url
+        .replace('{width}', '320')
+        .replace('{height}', '180');
+    
+    // Format viewer count
+    const viewers = streamer.viewer_count > 1000 
+        ? `${(streamer.viewer_count / 1000).toFixed(1)}K` 
+        : streamer.viewer_count;
+
+    return `
+        <a href="https://twitch.tv/${streamer.user_login}" target="_blank" class="streamer-card" title="Watch ${streamer.user_name} on Twitch">
+            <div class="streamer-card-thumbnail relative">
+                <img src="${thumbnailUrl}" alt="Thumbnail of ${streamer.user_name}'s stream" class="w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/320x180/1f1f1f/9146ff?text=Offline';">
+                <div class="live-indicator">LIVE</div>
+                <div class="viewer-count">${viewers} viewers</div>
+            </div>
+            <div class="streamer-card-info flex items-center space-x-3">
+                <div class="flex-grow">
+                    <h4 class="text-white font-bold truncate">${streamer.user_name}</h4>
+                    <p class="text-gray-400 text-sm truncate">${streamer.game_name}</p>
+                </div>
+            </div>
+        </a>
+    `;
+}
+
+/**
+ * Displays streamers in the carousel UI.
+ * @param {Array<Object>} streamers - Array of streamer objects from Twitch API.
+ */
+export function displayStreamersOnUI(streamers) {
+    if (!streamersCarousel) return;
+    streamersCarousel.innerHTML = '';
+
+    if (!streamers || streamers.length === 0) {
+        displayStreamersError("No streamers are live right now.");
+        return;
+    }
+
+    streamers.forEach(streamer => {
+        streamersCarousel.innerHTML += createStreamerCardHTML(streamer);
+    });
+}
+
+/**
+ * Sets up the event listeners and visibility for the streamer carousel controls.
+ * This version scrolls by one "page" (the visible width of the carousel) at a time.
+ */
+export function setupStreamerCarouselControls() {
+    if (!streamersCarousel || !prevStreamerBtn || !nextStreamerBtn) return;
+
+    // Use a ResizeObserver to update button visibility when the window size changes.
+    const observer = new ResizeObserver(() => {
+        updateButtonVisibility();
+    });
+
+    const updateButtonVisibility = () => {
+        // Amount to scroll is the visible width of the carousel.
+        const scrollAmount = streamersCarousel.clientWidth;
+        // The maximum distance the carousel can be scrolled.
+        const maxScroll = streamersCarousel.scrollWidth - scrollAmount;
+        
+        // Show/hide previous button
+        prevStreamerBtn.classList.toggle('hidden', streamersCarousel.scrollLeft <= 0);
+        // Show/hide next button. Use a small tolerance (e.g., 5px) for precision issues.
+        nextStreamerBtn.classList.toggle('hidden', streamersCarousel.scrollLeft >= maxScroll - 5);
+    };
+
+    // Check if the content is scrollable at all
+    if (streamersCarousel.scrollWidth > streamersCarousel.clientWidth) {
+         // Initial check
+        updateButtonVisibility();
+        observer.observe(streamersCarousel); // Start observing for size changes
+
+        // Add event listeners for buttons
+        prevStreamerBtn.addEventListener('click', () => {
+            const scrollAmount = streamersCarousel.clientWidth;
+            streamersCarousel.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        });
+        nextStreamerBtn.addEventListener('click', () => {
+            const scrollAmount = streamersCarousel.clientWidth;
+            streamersCarousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        });
+
+        // Update buttons after a scroll has finished
+        streamersCarousel.addEventListener('scroll', updateButtonVisibility);
+    } else {
+        // Hide both buttons if not scrollable and stop observing.
+        prevStreamerBtn.classList.add('hidden');
+        nextStreamerBtn.classList.add('hidden');
+        observer.unobserve(streamersCarousel);
+    }
+}
+
 
 // --- Game Card Creation and Display (for main games list) ---
 /**

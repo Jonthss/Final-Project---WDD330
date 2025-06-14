@@ -92,10 +92,28 @@
                 <!-- Game cards will be inserted here by JavaScript -->
             </div>
         </section>
-
+        
+        <!-- UPDATED: Moved pagination controls to be right after the games section -->
         <div id="paginationControls" class="mt-12 flex justify-center items-center space-x-2 sm:space-x-3">
             <!-- Pagination controls will be inserted here by JavaScript -->
         </div>
+
+        <!-- Streamers Section -->
+        <section id="streamersSection" class="mt-16">
+            <h2 id="streamersSectionTitle" class="text-3xl font-semibold text-white mb-8">Top Streamers Live Now</h2>
+            <div id="streamerLoading" class="loading-spinner" style="display: none;"></div>
+            <div class="streamer-carousel-wrapper">
+                <div class="relative streamer-carousel-container">
+                    <div id="streamersCarousel" class="flex overflow-x-auto scroll-smooth snap-x snap-mandatory gap-6">
+                        <!-- Streamer cards will be inserted here by JavaScript -->
+                    </div>
+                    <button id="prevStreamerBtn" class="carousel-btn left-0 hidden">&lt;</button>
+                    <button id="nextStreamerBtn" class="carousel-btn right-0 hidden">&gt;</button>
+                </div>
+            </div>
+             <p id="streamersError" class="text-center text-red-400 col-span-full text-lg hidden"></p>
+        </section>
+
     </div> <!-- End of Main Content -->
 
     <!-- Modal for game details -->

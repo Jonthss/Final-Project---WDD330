@@ -136,3 +136,108 @@ body {
     background-color: #1f1f1f; /* Cor de fundo similar aos cards */
     border-top: 1px solid #2a2a2a;
 }
+
+/* --- Streamer Carousel Styles --- */
+
+/* UPDATED: This new wrapper provides the vertical space for the hover effect */
+.streamer-carousel-wrapper {
+    padding: 1rem 0;
+}
+
+/* UPDATED: This container now only clips the content horizontally */
+.streamer-carousel-container {
+    position: relative;
+    overflow: hidden;
+    /* Padding was removed from here to fix the hover clipping issue */
+}
+
+#streamersCarousel {
+    display: flex;
+    gap: 1.5rem; /* Corresponds to Tailwind's `gap-6` */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+#streamersCarousel::-webkit-scrollbar {
+    display: none;
+}
+
+.streamer-card {
+    flex: 0 0 calc(25% - (1.5rem * 3 / 4)); /* 25% for 4 cards, minus the proportional gap. */
+    min-width: 220px;
+    
+    background-color: #1f1f1f;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border: 1px solid #2a2a2a;
+    snap-align: start;
+}
+.streamer-card:hover {
+    /* The transform should no longer be clipped by the parent container */
+    transform: translateY(-8px); 
+    box-shadow: 0 8px 25px rgba(145, 71, 255, 0.3);
+    border-color: #9147ff;
+}
+
+.streamer-card-thumbnail {
+    position: relative;
+}
+.streamer-card-thumbnail .live-indicator {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    background-color: #eb0400;
+    color: white;
+    padding: 0.1rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.streamer-card-thumbnail .viewer-count {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 0.1rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.streamer-card-info {
+    padding: 1rem;
+    background-color: #1a1a1a;
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(31, 31, 31, 0.9);
+    color: white;
+    border: 1px solid #3f3f3f;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.carousel-btn:hover {
+    background-color: #9147ff;
+    border-color: #9147ff;
+    transform: translateY(-50%) scale(1.1);
+}
+.carousel-btn.left-0 {
+    left: 1rem;
+}
+.carousel-btn.right-0 {
+    right: 1rem;
+}

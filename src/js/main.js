@@ -1,7 +1,7 @@
 // src/js/main.js
 import '../css/index.css'; // Main stylesheet
 import { apiKey } from './config.js'; // API key and other configurations
-import { fetchGamesAPI, fetchGameDetailsAPI } from './apiService.js'; // API fetching functions
+import { fetchGamesAPI, fetchGameDetailsAPI, fetchTopStreamersAPI } from './apiService.js'; // API fetching functions
 import {
     // UI Functions
     showLoading,
@@ -15,6 +15,11 @@ import {
     setupHamburgerMenu,
     setupModalEventListeners,
     showToast, // Import showToast
+    displayStreamersOnUI, // For Twitch carousel
+    setupStreamerCarouselControls, // For Twitch carousel
+    showStreamerLoading, // For Twitch carousel
+    hideStreamerLoading, // For Twitch carousel
+    displayStreamersError, // For Twitch carousel
     // DOM Elements (if needed directly, though mostly managed by uiManager)
     gamesGrid, // Used for error message fallback
     searchInput,
@@ -91,6 +96,29 @@ async function loadGamesAndUpdateUI(page, searchQuery = '') {
 }
 
 /**
+ * Loads top streamers from the API and updates the carousel UI.
+ */
+async function loadStreamersAndUpdateUI() {
+    showStreamerLoading();
+    try {
+        const streamersData = await fetchTopStreamersAPI();
+        if (streamersData && streamersData.data && streamersData.data.length > 0) {
+            displayStreamersOnUI(streamersData.data);
+            setupStreamerCarouselControls();
+        } else {
+            displayStreamersError("Não foi possível encontrar streamers no momento.");
+        }
+    } catch (error) {
+        console.error('Failed to load and display streamers:', error);
+        displayStreamersError(`Erro ao carregar streamers: ${error.message}`);
+        showToast(`Error loading streamers: ${error.message}`, 5000);
+    } finally {
+        hideStreamerLoading();
+    }
+}
+
+
+/**
  * Handler for when a game card is clicked. Fetches game details and displays them in a modal.
  * @param {string|number} gameId - The ID or slug of the clicked game.
  */
@@ -151,8 +179,9 @@ function initializeApp() {
         });
     }
 
-    // Initial load of games
+    // Initial load of games and streamers
     loadGamesAndUpdateUI(currentPage, currentSearchQuery);
+    loadStreamersAndUpdateUI();
 }
 
 // Wait for the DOM to be fully loaded before initializing the app
