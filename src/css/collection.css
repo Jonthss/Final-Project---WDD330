@@ -1,18 +1,16 @@
-/* css/collection.css */
+/* src/collection/collection.css */
 
 /* Background for the collection page */
 body.body-collection-page {
-    background-image: url('/images/game_details_image.png'); /* Path relative to the public folder root */
-    background-size: cover; /* Cover the entire page */
-    background-position: center center; /* Center the image */
-    background-repeat: no-repeat; /* Do not repeat the image */
-    background-attachment: fixed; /* Keep the background fixed during scroll */
-    /* You might want to remove or override the default dark background from index.css for this page */
-    background-color: #121212; /* Fallback color if image fails to load */
+    background-image: url('../../images/game_details_image.png'); /* Corrected path relative to the CSS file */
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #121212; /* Fallback color */
 }
 
-/* Ensure content is readable over the background. You might need an overlay or adjust text colors. */
-/* Example: Add a semi-transparent overlay to the body or main content container if text is hard to read */
+/* Overlay for the background image */
 body.body-collection-page::before {
     content: "";
     position: fixed;
@@ -20,9 +18,57 @@ body.body-collection-page::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(18, 18, 18, 0.4); 
+    background-color: rgba(18, 18, 18, 0.6);
     z-index: -1; 
 }
+
+/* --- Navbar and Footer Styles (Copied from index.css) --- */
+.navbar {
+    background-color: rgba(18, 18, 18, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.footer-bg {
+    background-color: #1f1f1f;
+    border-top: 1px solid #2a2a2a;
+}
+
+.mobile-menu {
+    background-color: #1f1f1f;
+    border-top: 1px solid #2a2a2a;
+}
+.mobile-menu a {
+    border-bottom: 1px solid #2a2a2a;
+}
+.mobile-menu a:last-child {
+    border-bottom: none;
+}
+/* --- End of Navbar and Footer Styles --- */
+
+
+/* --- Game Card Styles --- */
+.collection-item.game-card {
+    background-color: #1f1f1f;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+.collection-item.game-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+}
+
+.collection-item .game-image {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-bottom: 1px solid #2a2a2a;
+}
+/* --- End of Game Card Styles --- */
 
 
 .collection-item .remove-from-collection-btn {
@@ -39,7 +85,7 @@ body.body-collection-page::before {
     transition: color 0.2s ease-in-out;
 }
 
-/* Smaller tags for collection page cards if needed */
+/* Smaller tags for collection page cards */
 .platform-tag-sm {
     background-color: #3f3f3f; 
     color: #a0a0a0;
@@ -54,4 +100,110 @@ body.body-collection-page::before {
     font-size: 0.65rem; 
     padding: 0.15rem 0.4rem;
     border-radius: 9999px;
+}
+
+/* --- Streamer Carousel Styles --- */
+.streamer-carousel-wrapper {
+    padding: 1rem 0;
+}
+
+.streamer-carousel-container {
+    position: relative;
+    overflow: hidden;
+}
+
+#streamersCarousel {
+    display: flex;
+    gap: 1.5rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+#streamersCarousel::-webkit-scrollbar {
+    display: none;
+}
+
+.streamer-card {
+    flex: 0 0 calc(25% - (1.5rem * 3 / 4));
+    min-width: 220px;
+    background-color: #1f1f1f;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border: 1px solid #2a2a2a;
+    snap-align: start;
+}
+
+.streamer-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(145, 71, 255, 0.3);
+    border-color: #9147ff;
+}
+
+.streamer-card-thumbnail {
+    position: relative;
+}
+
+.streamer-card-thumbnail .live-indicator {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    background-color: #eb0400;
+    color: white;
+    padding: 0.1rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.streamer-card-thumbnail .viewer-count {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 0.1rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.streamer-card-info {
+    padding: 1rem;
+    background-color: #1a1a1a;
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(31, 31, 31, 0.9);
+    color: white;
+    border: 1px solid #3f3f3f;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.carousel-btn:hover {
+    background-color: #9147ff;
+    border-color: #9147ff;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-btn.left-0 {
+    left: 1rem;
+}
+
+.carousel-btn.right-0 {
+    right: 1rem;
 }

@@ -1,95 +1,114 @@
 // src/js/collectionPage.js
 import { getCollection, removeFromCollection } from './collectionManager.js';
+import { fetchStreamsForGamesAPI } from './apiService.js';
 
 // --- DOM Elements ---
 const collectionGamesGrid = document.getElementById('collectionGamesGrid');
 const emptyCollectionMessage = document.getElementById('emptyCollectionMessage');
-const toastNotification = document.getElementById('toastNotification'); // For toast messages
+const toastNotification = document.getElementById('toastNotification');
 const toastMessage = document.getElementById('toastMessage');
 let toastTimeout;
 
-// --- Toast Notification Function ---
-/**
- * Displays a toast notification message.
- * @param {string} message - The message to display.
- * @param {number} duration - How long the toast stays visible (in milliseconds).
- */
-function showToast(message, duration = 3000) {
-    if (!toastNotification || !toastMessage) {
-        console.warn("Toast elements not found in DOM for collection page.");
-        return;
-    }
+// --- Streamer Section DOM Elements ---
+const liveStreamsSection = document.getElementById('liveStreamsSection');
+const streamersCarousel = document.getElementById('streamersCarousel');
+const prevStreamerBtn = document.getElementById('prevStreamerBtn');
+const nextStreamerBtn = document.getElementById('nextStreamerBtn');
+const streamerLoading = document.getElementById('streamerLoading');
+const streamersError = document.getElementById('streamersError');
 
+// --- Toast Notification ---
+function showToast(message, duration = 3000) {
+    if (!toastNotification || !toastMessage) return;
     toastMessage.textContent = message;
     toastNotification.classList.remove('opacity-0');
-    toastNotification.classList.add('opacity-100');
-
-    clearTimeout(toastTimeout); // Clear any existing timeout
-    toastTimeout = setTimeout(() => {
-        toastNotification.classList.remove('opacity-100');
-        toastNotification.classList.add('opacity-0');
-    }, duration);
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => toastNotification.classList.add('opacity-0'), duration);
 }
 
-// --- Main Functions for Collection Page ---
-/**
- * Displays the games currently in the user's collection.
- */
-function displayCollectionGames() {
-    if (!collectionGamesGrid || !emptyCollectionMessage) {
-        console.warn("Collection grid or empty message element not found.");
-        return;
+// --- Streamer Carousel Functions ---
+
+function createStreamerCardHTML(streamer) {
+    const thumbnailUrl = streamer.thumbnail_url.replace('{width}', '320').replace('{height}', '180');
+    const viewers = streamer.viewer_count > 1000 ? `${(streamer.viewer_count / 1000).toFixed(1)}K` : streamer.viewer_count;
+    return `
+        <a href="https://twitch.tv/${streamer.user_login}" target="_blank" class="streamer-card" title="Watch ${streamer.user_name} on Twitch">
+            <div class="streamer-card-thumbnail relative">
+                <img src="${thumbnailUrl}" alt="Thumbnail of ${streamer.user_name}'s stream" class="w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/320x180/1f1f1f/9146ff?text=Offline';">
+                <div class="live-indicator">LIVE</div>
+                <div class="viewer-count">${viewers} viewers</div>
+            </div>
+            <div class="streamer-card-info flex items-center space-x-3">
+                <div class="flex-grow">
+                    <h4 class="text-white font-bold truncate">${streamer.user_name}</h4>
+                    <p class="text-gray-400 text-sm truncate">${streamer.game_name}</p>
+                </div>
+            </div>
+        </a>
+    `;
+}
+
+function setupStreamerCarouselControls() {
+    if (!streamersCarousel || !prevStreamerBtn || !nextStreamerBtn) return;
+    const observer = new ResizeObserver(updateButtonVisibility);
+
+    function updateButtonVisibility() {
+        const scrollAmount = streamersCarousel.clientWidth;
+        const maxScroll = streamersCarousel.scrollWidth - scrollAmount;
+        prevStreamerBtn.classList.toggle('hidden', streamersCarousel.scrollLeft <= 0);
+        nextStreamerBtn.classList.toggle('hidden', streamersCarousel.scrollLeft >= maxScroll - 5);
     }
 
-    const collection = getCollection();
-    collectionGamesGrid.innerHTML = ''; // Clear existing games
-
-    if (collection.length === 0) {
-        emptyCollectionMessage.classList.remove('hidden');
-        collectionGamesGrid.classList.add('hidden');
-        // Ensure the message text is set if it's not hardcoded in HTML
-        const emptyMessageLink = emptyCollectionMessage.querySelector('a');
-        if (emptyMessageLink) {
-             emptyCollectionMessage.innerHTML = `Your collection is empty. Go <a href="../../index.html#Explore" class="text-indigo-400 hover:underline">explore some games</a> to add them!`;
-        } else {
-            emptyCollectionMessage.textContent = 'Your collection is empty. Go explore some games to add them!';
-        }
-
+    if (streamersCarousel.scrollWidth > streamersCarousel.clientWidth) {
+        updateButtonVisibility();
+        observer.observe(streamersCarousel);
+        prevStreamerBtn.onclick = () => streamersCarousel.scrollBy({ left: -streamersCarousel.clientWidth, behavior: 'smooth' });
+        nextStreamerBtn.onclick = () => streamersCarousel.scrollBy({ left: streamersCarousel.clientWidth, behavior: 'smooth' });
+        streamersCarousel.onscroll = updateButtonVisibility;
     } else {
-        emptyCollectionMessage.classList.add('hidden');
-        collectionGamesGrid.classList.remove('hidden');
-        collection.forEach(game => {
-            const gameCard = createCollectionGameCard(game);
-            collectionGamesGrid.appendChild(gameCard);
-        });
+        prevStreamerBtn.classList.add('hidden');
+        nextStreamerBtn.classList.add('hidden');
+        observer.disconnect();
     }
 }
 
-/**
- * Creates the HTML structure for a single game card in the collection.
- * @param {Object} game - The game object from the stored collection.
- * @returns {HTMLElement} The created game card element.
- */
+async function loadLiveStreamsForCollection(collection) {
+    if (collection.length === 0 || !liveStreamsSection) return;
+
+    liveStreamsSection.classList.remove('hidden');
+    streamerLoading.style.display = 'block';
+    streamersError.classList.add('hidden');
+
+    try {
+        const gameNames = collection.map(game => game.name);
+        const streamsData = await fetchStreamsForGamesAPI(gameNames);
+
+        if (streamsData.data && streamsData.data.length > 0) {
+            streamersCarousel.innerHTML = streamsData.data.map(createStreamerCardHTML).join('');
+            setupStreamerCarouselControls();
+        } else {
+            streamersError.textContent = "No live streams found for your favorite games right now.";
+            streamersError.classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error("Failed to load live streams for collection:", error);
+        streamersError.textContent = "Could not load live streams. Please try again later.";
+        streamersError.classList.remove('hidden');
+    } finally {
+        streamerLoading.style.display = 'none';
+    }
+}
+
+// --- Collection Games Functions ---
+
 function createCollectionGameCard(game) {
     const gameCard = document.createElement('div');
-    gameCard.classList.add('game-card', 'flex', 'flex-col', 'collection-item'); // 'collection-item' for specific styling if needed
-
+    gameCard.className = 'game-card flex flex-col collection-item';
     const placeholderImage = 'https://placehold.co/400x300/1f1f1f/e0e0e0?text=No+Image';
     const imageUrl = game.background_image || placeholderImage;
-
-    const metacriticHTML = game.metacritic ?
-        `<div class="text-xs text-gray-400 mb-1">Metacritic: <span class="font-semibold text-indigo-400">${game.metacritic}</span></div>` :
-        '<div class="text-xs text-gray-400 mb-1">Metacritic: N/A</div>';
-
-    // Display up to 3 platforms
-    const platformsHTML = game.platforms && game.platforms.length > 0 ?
-        game.platforms.slice(0, 3).map(name => `<span class="platform-tag-sm rounded-full">${name}</span>`).join(' ') :
-        '<span class="text-xs text-gray-500">N/A</span>';
-    
-    // Display up to 2 genres
-    const genresHTML = game.genres && game.genres.length > 0 ?
-        game.genres.slice(0, 2).map(name => `<span class="genre-tag-sm rounded-full">${name}</span>`).join(' ') :
-        '<span class="text-xs text-gray-500">N/A</span>';
+    const metacriticHTML = game.metacritic ? `<div class="text-xs text-gray-400 mb-1">Metacritic: <span class="font-semibold text-indigo-400">${game.metacritic}</span></div>` : '<div class="text-xs text-gray-400 mb-1">Metacritic: N/A</div>';
+    const platformsHTML = game.platforms?.slice(0, 3).map(name => `<span class="platform-tag-sm rounded-full">${name}</span>`).join(' ') || '<span class="text-xs text-gray-500">N/A</span>';
+    const genresHTML = game.genres?.slice(0, 2).map(name => `<span class="genre-tag-sm rounded-full">${name}</span>`).join(' ') || '<span class="text-xs text-gray-500">N/A</span>';
 
     gameCard.innerHTML = `
         <div class="relative">
@@ -106,39 +125,22 @@ function createCollectionGameCard(game) {
                 Released: ${game.released ? new Date(game.released).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}
             </div>
             ${metacriticHTML}
-            <div class="my-2">
-                <p class="text-xs text-gray-500 mb-1">Platforms:</p>
-                <div class="flex flex-wrap gap-1 items-center">
-                    ${platformsHTML}
-                </div>
-            </div>
-            <div class="my-2">
-                <p class="text-xs text-gray-500 mb-1">Genres:</p>
-                <div class="flex flex-wrap gap-1 items-center">
-                    ${genresHTML}
-                </div>
-            </div>
-            <div class="mt-auto pt-2">
-                 <a href="../details/game-details.html?gameId=${game.id}" target="_self" class="view-details-link inline-block text-indigo-400 hover:text-indigo-300 text-sm font-medium">View Game Page</a>
-            </div>
+            <div class="my-2"><p class="text-xs text-gray-500 mb-1">Platforms:</p><div class="flex flex-wrap gap-1 items-center">${platformsHTML}</div></div>
+            <div class="my-2"><p class="text-xs text-gray-500 mb-1">Genres:</p><div class="flex flex-wrap gap-1 items-center">${genresHTML}</div></div>
+            <div class="mt-auto pt-2"><a href="../details/game-details.html?gameId=${game.id}" target="_self" class="view-details-link inline-block text-indigo-400 hover:text-indigo-300 text-sm font-medium">View Game Page</a></div>
         </div>
     `;
 
     const removeButton = gameCard.querySelector('.remove-from-collection-btn');
-    if (removeButton) {
-        removeButton.addEventListener('click', (event) => {
-            event.stopPropagation(); // Prevent card click event
-            const gameIdToRemove = parseInt(removeButton.dataset.gameId, 10);
-            removeFromCollection(gameIdToRemove);
-            showToast(`"${game.name}" removed from collection.`);
-            displayCollectionGames(); // Refresh the displayed collection
-        });
-    }
-    
-    // Make the card (excluding the remove button) link to the game details page
+    removeButton.addEventListener('click', (event) => {
+        event.stopPropagation();
+        removeFromCollection(game.id);
+        showToast(`"${game.name}" removed from collection.`);
+        displayCollectionGames(); // Refresh the entire page content
+    });
+
     gameCard.addEventListener('click', (event) => {
         if (!event.target.closest('.remove-from-collection-btn')) {
-            // Navigate to the internal game details page
             window.location.href = `../details/game-details.html?gameId=${game.id}`;
         }
     });
@@ -146,10 +148,25 @@ function createCollectionGameCard(game) {
     return gameCard;
 }
 
+function displayCollectionGames() {
+    const collection = getCollection();
+    collectionGamesGrid.innerHTML = '';
+
+    if (collection.length === 0) {
+        emptyCollectionMessage.classList.remove('hidden');
+        collectionGamesGrid.classList.add('hidden');
+        if(liveStreamsSection) liveStreamsSection.classList.add('hidden'); // Hide streams if collection is empty
+    } else {
+        emptyCollectionMessage.classList.add('hidden');
+        collectionGamesGrid.classList.remove('hidden');
+        collection.forEach(game => {
+            const gameCard = createCollectionGameCard(game);
+            collectionGamesGrid.appendChild(gameCard);
+        });
+        // After displaying the games, load the streams for them
+        loadLiveStreamsForCollection(collection);
+    }
+}
+
 // --- Initialization ---
-/**
- * Initializes the collection page when the DOM is fully loaded.
- */
-document.addEventListener('DOMContentLoaded', () => {
-    displayCollectionGames();
-});
+document.addEventListener('DOMContentLoaded', displayCollectionGames);
